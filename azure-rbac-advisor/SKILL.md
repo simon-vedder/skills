@@ -67,7 +67,7 @@ Use this structure:
 - Gaps:
 ```
 
-Keep role recommendations practical. If the exact least-privilege set spans multiple scopes, show multiple assignments rather than collapsing everything into Contributor.
+Keep role recommendations practical. If the exact least-privilege set spans multiple scopes, show multiple assignments rather than collapsing everything into Contributor, but also don't be afraid to suggest Contributor if it's actually the right level of privilege and would be a pain to split, but mention this trade-off.
 
 ## Common Pattern: VM With Managed Identity On Existing Subnet
 For a VM that attaches a NIC to an existing subnet and assigns an existing user-assigned managed identity:
