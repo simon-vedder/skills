@@ -94,3 +94,33 @@ A complete Azure CLI / PowerShell-compatible role definition JSON scoped to the 
 - **Assumptions** — scope, existing vs. new resources, deployment method
 - **Verification** — confidence level (`High` = verified from live data or current docs, `Medium` = inferred from stable operation naming, `Low` = provider behavior ambiguous) and which sources were used
 - **Gaps** — operations that could not be confirmed or depend on runtime behavior
+
+## Applying Role Assignments
+
+After the advisor produces its output, you can tell the skill to apply the recommended assignments directly to your tenant. The skill will prompt for a principal, show a full manifest of all changes, ask for confirmation, and then execute.
+
+**Prerequisites:** Azure CLI installed and signed in with sufficient permissions to create role definitions and role assignments at the target scope (typically `User Access Administrator` or `Owner`).
+
+```text
+Apply the recommended role assignments to john@contoso.com
+```
+
+The skill will:
+
+1. Ask for a principal (UPN like `john@contoso.com` or object ID GUID) if not already provided.
+2. Show every change that will be made before touching anything:
+
+   ```
+   Will create the following in Azure:
+
+     [Custom Role]  "Least Privilege Deploy Operator"  AssignableScopes: /subscriptions/...
+     [Assignment]   "Least Privilege Deploy Operator"  Scope: /subscriptions/.../resourceGroups/myRG  →  john@contoso.com
+     [Assignment]   "Managed Identity Operator"        Scope: .../identities/myId                    →  john@contoso.com
+
+   Confirm? (yes / no)
+   ```
+
+3. On explicit `yes`: create any custom role first, then all assignments. Failures are reported per-row without aborting the batch.
+4. Return a summary table of every created or failed item.
+
+You can also override the target scope at apply time if you want assignments at a different scope than the advisor recommended.
