@@ -65,9 +65,71 @@ Use this structure:
 - Assumptions:
 - Verification:
 - Gaps:
+
+---
+*Want these assignments applied? Say "apply" and provide a principal (UPN or object ID).*
 ```
 
 Keep role recommendations practical. If the exact least-privilege set spans multiple scopes, show multiple assignments rather than collapsing everything into Contributor, but also don't be afraid to suggest Contributor if it's actually the right level of privilege and would be a pain to split, but mention this trade-off.
+
+## Apply Phase
+Triggered when user says "apply", "create the assignments", or similar after advisor output.
+
+### Step 1 — Collect inputs
+Ask for (if not already provided):
+- **Principal**: UPN (`john@contoso.com`) or object ID (GUID). `az role assignment create --assignee` accepts both.
+- **Scope override** (optional): if user wants assignments at a different scope than advised, accept it. Otherwise use scopes from advisor output.
+
+### Step 2 — Show manifest and confirm
+
+**Warning:** This will create live Azure role assignments and/or role definitions. These changes affect real tenant authorization and cannot be automatically undone.
+
+Display before any write:
+```
+Will create the following in Azure:
+
+  [Custom Role]  "<Name>"  AssignableScopes: <scopes>
+  [Assignment]   "<Role>"  Scope: <scope>  →  <principal>
+  [Assignment]   "<Role>"  Scope: <scope>  →  <principal>
+
+Confirm? (yes / no)
+```
+Only proceed on explicit "yes". Any other response: abort, no changes made.
+
+### Step 3 — Execute (in order)
+
+**Custom role first** (if present in advisor output):
+```bash
+az role definition create --role-definition '<custom-role-json>'
+```
+Name collision handling: if command fails with `RoleDefinitionWithSameNameExists`, offer two options:
+1. Update existing: `az role definition update --role-definition '<json>'`
+2. Rename the custom role and retry create
+
+**Then role assignments:**
+```bash
+az role assignment create \
+  --role "<role-name-or-id>" \
+  --assignee "<upn-or-object-id>" \
+  --scope "<scope>"
+```
+Run one command per assignment. If any fails, report the error inline and continue with remaining assignments. Do not abort the whole batch on a single failure.
+
+### Step 4 — Output summary
+
+After all commands complete:
+```md
+## Applied Role Assignments
+
+| Status | Type | Name | Scope | Principal |
+| --- | --- | --- | --- | --- |
+| ✓ Created | Custom Role | "Least Privilege Deploy Operator" | /subscriptions/... | — |
+| ✓ Created | Assignment | "Least Privilege Deploy Operator" | /subscriptions/.../resourceGroups/myRG | john@contoso.com |
+| ✓ Created | Assignment | "Managed Identity Operator" | .../identities/myId | john@contoso.com |
+| ✗ Failed  | Assignment | "Network Contributor" | /subscriptions/... | john@contoso.com |
+
+[Include error message for any failed row.]
+```
 
 ## Common Pattern: VM With Managed Identity On Existing Subnet
 For a VM that attaches a NIC to an existing subnet and assigns an existing user-assigned managed identity:
