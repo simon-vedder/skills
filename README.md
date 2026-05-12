@@ -18,6 +18,8 @@ When an agent has a skill loaded, you can invoke it by name in plain language. T
 | Skill | Description | Agents | Requirements |
 | --- | --- | --- | --- |
 | [azure-rbac-advisor](./azure-rbac-advisor) | Least-privilege Azure RBAC advisor. Analyzes Terraform, Bicep, and ARM templates, maps operations to built-in roles, and generates custom role JSON. | Claude Code, Copilot | Optional: Azure MCP or Azure CLI for live tenant data |
+| [azure-cost](./azure-cost) | Azure cost analysis. Two modes: analyze actual spend + Advisor findings for an existing resource group (`--live`), or estimate pre-deploy costs from Terraform/Bicep/ARM (`--plan`). | Claude Code, Copilot | Live mode: Azure CLI + Cost Management permissions. Plan mode: none |
+| [azure-updates](./azure-updates) | Azure updates impact analyzer. Fetches Azure Updates RSS + Service Health, cross-references against all resources in your subscriptions, and surfaces impacted resources with action steps, deadlines, and severity. Also shows a news table for upcoming GA/preview announcements. | Claude Code, Copilot | Azure CLI + Azure MCP |
 
 ## Installation
 
